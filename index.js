@@ -23,6 +23,24 @@ var tasks = [
 // Middleware para poder leer JSON en el body de las requests (lo necesitarás en Stage 3)
 app.use(express.json());
 
+app.param('id', (req, res, next, value) => {
+  const taskId = Number(id);
+  if(isNaN(id)){
+    return res.status(400).json({error: "Unkown ID"});
+  }
+
+  const task = tasks.find(t => t.id == taskId);
+  if(!task){
+    return res.status(404).json({error: `Task ${id} not found`});
+  }
+
+  req.task = task;
+  req.taskId = taskId;
+
+  next();
+});
+
+//== 1 ==
 
 // Endpoint para obtener información de la API
 app.get('/', (req, res) => {
@@ -38,6 +56,7 @@ app.get('/health', (req, res) => {
   res.json({ status: "ok" });
 });
 
+//== 2 ==
 
 // Endpoint para obtener todas las tareas
 app.get('/tasks', (req, res) => {
@@ -46,16 +65,10 @@ app.get('/tasks', (req, res) => {
 
 // Endpoint para obtener una tarea por su ID
 app.get('/tasks/:id', (req, res) => {
-  var taskId = Number(req.params.id);
-  if (isNaN(taskId)) {
-    return res.status(400).json({ error: "Invalid task ID" });
-  }
-  var task = tasks.find(t => t.id === taskId);
-  if (!task) {
-    return res.status(404).json({ error: "Task not found" });
-  }
-  res.json(task);
+  res.json(req.task); // usa lo que dejó el app.param
 });
+
+//== 3 ==
 
 // Endpoint para crear una nueva tarea
 app.post('/tasks', (req, res) => {
@@ -75,6 +88,34 @@ app.post('/tasks', (req, res) => {
   tasks.push(newTask);
   res.status(201).json(newTask);
 });
+
+
+//== 4 ==
+// Endpoint para actualizar una tarea existente
+app.put('/tasks/:id', (req, res) => {
+  if ((req.body.title == null || req.body.title.trim() === "") && req.body.done == null) {
+    return res.status(400).json({ error: "Invalid body" });
+  }
+
+  if (req.body.title != null && req.body.title.trim() !== "") {
+    req.task.title = req.body.title;
+  }
+  if (req.body.done != null) {
+    req.task.done = req.body.done;
+  }
+
+  res.json(req.task);
+});
+
+// Endpoint para eliminar una tarea existente
+app.delete('/tasks/:id', (req, res) => {
+  const index = tasks.findIndex(t => t.id === req.taskId);
+  tasks.splice(index, 1);
+  res.status(204).end();
+});
+
+//== 5 ==
+
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
