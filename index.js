@@ -1,6 +1,10 @@
 const express = require('express');
 const app = express();
 const port = 3000;
+const  swaggerUi  =  require ( 'swagger-ui-express' ) ; 
+const  swaggerDocument  =  require ( './openapi.json' ) ;
+
+app.use ( '/docs' , swaggerUi.serve , swaggerUi.setup ( swaggerDocument ) ) ;
 
 var tasks = [
   {
@@ -23,7 +27,7 @@ var tasks = [
 // Middleware para poder leer JSON en el body de las requests (lo necesitarás en Stage 3)
 app.use(express.json());
 
-app.param('id', (req, res, next, value) => {
+app.param('id', (req, res, next, id) => {
   const taskId = Number(id);
   if(isNaN(id)){
     return res.status(400).json({error: "Unkown ID"});
