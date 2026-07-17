@@ -57,7 +57,13 @@ Con el servidor corriendo, visita:
 
 **http://localhost:3000/docs**
 
-![Swagger UI](./images/swagger-ui.png)
+![Swagger UI](/images/swagger-ui.png)
+
+### Prueba del endpoint POST /tasks
+
+![Swagger UI - Try it out POST](/images/swagger-ui-post.png)
+
+![Swagger UI - respuesta POST](/images/swagger-ui-post-tryout.png)
 
 ---
 
@@ -81,3 +87,9 @@ Keep-Alive: timeout=5
 
 {"id":4,"title":"Comprar leche","done":false}
 ```
+
+---
+
+## Autor
+
+**Vicente Hernández Ramos** — [@vicenhr](https://github.com/vicenhr)
