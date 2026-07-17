@@ -46,8 +46,8 @@ app.get('/tasks', (req, res) => {
 
 // Endpoint para obtener una tarea por su ID
 app.get('/tasks/:id', (req, res) => {
-  var taskId = Number(req.params.id);  
-  if (isNaN(taskId)){
+  var taskId = Number(req.params.id);
+  if (isNaN(taskId)) {
     return res.status(400).json({ error: "Invalid task ID" });
   }
   var task = tasks.find(t => t.id === taskId);
@@ -55,6 +55,25 @@ app.get('/tasks/:id', (req, res) => {
     return res.status(404).json({ error: "Task not found" });
   }
   res.json(task);
+});
+
+// Endpoint para crear una nueva tarea
+app.post('/tasks', (req, res) => {
+  if(req.body.title==null || req.body.title.trim() === "") {
+    return res.status(400).json({ error: "Title is required" });
+  }
+  
+  const maxId = tasks.length === 0 ? 0 : Math.max(...tasks.map(t => t.id));
+  const newId = maxId + 1;
+  
+  var newTask = {
+    id: newId,
+    title: req.body.title,
+    done: false
+  }
+  
+  tasks.push(newTask);
+  res.status(201).json(newTask);
 });
 
 app.listen(port, () => {
