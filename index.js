@@ -64,6 +64,10 @@ app.get('/health', (req, res) => {
 
 // Endpoint para obtener todas las tareas
 app.get('/tasks', (req, res) => {
+  // Extra: Query param para filtrar tareas hechas
+  if(req.query.done == "true"){
+    return res.json(tasks.filter(t => t.done));
+  }
   res.json(tasks);
 });
 
@@ -118,7 +122,8 @@ app.delete('/tasks/:id', (req, res) => {
   res.status(204).end();
 });
 
-//== 5 ==
+//== Extras ==
+
 
 
 app.listen(port, () => {
