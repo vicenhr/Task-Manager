@@ -17,7 +17,17 @@
         },
         "/tasks": {
             "get": {
-                "summary": "get all tasks",
+                "summary": "get all tasks and filter by true",
+                "parameters": [
+                    {
+                        "name": "done",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK"
