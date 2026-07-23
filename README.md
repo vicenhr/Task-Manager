@@ -67,7 +67,7 @@ Con el servidor corriendo, visita:
 
 ---
 
-## 🧪 Ejemplo de uso (curl)
+## 💻 Ejemplo de uso (curl)
 
 ```bash
 curl -i -X POST http://localhost:3000/tasks -H "Content-Type: application/json" -d "{\"title\":\"Comprar leche\"}"
@@ -87,6 +87,14 @@ Keep-Alive: timeout=5
 
 {"id":4,"title":"Comprar leche","done":false}
 ```
+
+---
+
+## 🧪 The mortality experiment
+
+"create a few tasks, restart your server, GET /tasks . Write two sentences in your README about what happened and why. This observation is the entire reason Week 3 exists"
+
+The data was reset due to the fact that the array is on memory, it disappears when the server is restarted. This is the reason why we need to use a database to store data persistently.
 
 ---
 

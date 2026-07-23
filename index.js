@@ -1,41 +1,47 @@
 const express = require('express');
 const app = express();
 const port = 3000;
-const  swaggerUi  =  require ( 'swagger-ui-express' ) ; 
-const  swaggerDocument  =  require ( './openapi.json' ) ;
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./openapi.json');
+const Database = require('better-sqlite3');
+const db = new Database('tasks.db');
 
-app.use ( '/docs' , swaggerUi.serve , swaggerUi.setup ( swaggerDocument ) ) ;
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-var tasks = [
-  {
-    id: 1,
-    title: "First Task",
-    done: true
-  },
-  {
-    id: 2,
-    title: "Second Task",
-    done: true
-  },
-  {
-    id: 3,
-    title: "Third Task",
-    done: true
-  }
-];
+db.exec(`
+  CREATE TABLE IF NOT EXISTS tasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    done BOOLEAN NOT NULL DEFAULT 0
+  );
+`);
+
+console.log("Database initialized");
+
+const row = db.prepare('SELECT COUNT(*) as total FROM tasks').get()
+if (row.total === 0) {
+  // Prepare an INSERT statement
+  const insert = db.prepare('INSERT INTO tasks (title) VALUES (?)');
+
+  // Insert user data
+  insert.run('Comprar leche');
+  insert.run('Lavar ropa');
+  insert.run('Cocinar lasaña');
+
+}
 
 // Middleware para poder leer JSON en el body de las requests (lo necesitarás en Stage 3)
 app.use(express.json());
 
 app.param('id', (req, res, next, id) => {
   const taskId = Number(id);
-  if(isNaN(id)){
-    return res.status(400).json({error: "Unkown ID"});
+  if (isNaN(taskId)) {
+    return res.status(400).json({ error: "Invalid ID" });
   }
 
-  const task = tasks.find(t => t.id == taskId);
-  if(!task){
-    return res.status(404).json({error: `Task ${id} not found`});
+  const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(taskId);
+  if (!task) {
+    return res.status(404).json({ error: `Task ${id} not found` });
   }
 
   req.task = task;
@@ -64,10 +70,11 @@ app.get('/health', (req, res) => {
 
 // Endpoint para obtener todas las tareas
 app.get('/tasks', (req, res) => {
-  // Extra: Query param para filtrar tareas hechas
   if(req.query.done == "true"){
-    return res.json(tasks.filter(t => t.done));
+    const doneTasks = db.prepare('SELECT * FROM tasks WHERE done = 1').all();
+    return res.json(doneTasks);
   }
+  const tasks = db.prepare('SELECT * FROM tasks').all();
   res.json(tasks);
 });
 
