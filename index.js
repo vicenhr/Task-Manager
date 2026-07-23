@@ -105,19 +105,21 @@ app.put('/tasks/:id', (req, res) => {
   }
 
   if (req.body.title != null && req.body.title.trim() !== "") {
-    req.task.title = req.body.title;
+    const change = db.prepare('UPDATE tasks SET title = ? where id = ? ').run(req.body.title, req.taskId);
   }
   if (req.body.done != null) {
-    req.task.done = req.body.done;
+    const change = db.prepare('UPDATE tasks SET done = ? where id = ? ').run(Number(req.body.done), req.taskId);
   }
 
-  res.json(req.task);
+  const taskUpdated = db.prepare('SELECT * FROM tasks WHERE id = ?').get(req.taskId);
+
+  res.json(taskUpdated);
 });
 
 // Endpoint para eliminar una tarea existente
 app.delete('/tasks/:id', (req, res) => {
-  const index = tasks.findIndex(t => t.id === req.taskId);
-  tasks.splice(index, 1);
+  const taskDelete = db.prepare('DELETE FROM tasks WHERE id = ?').run(req.task.id);
+  console.log(taskDelete);
   res.status(204).end();
 });
 
