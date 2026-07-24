@@ -91,17 +91,6 @@ select count(*) from tasks;
 
 Esta consulta corrida justo después de que el servidor sembrara los datos iniciales (antes de crear ninguna tarea adicional) devuelve `3` — confirmando que la semilla de Stage 0 insertó exactamente las tres tareas esperadas, ni una más.
 
-
-### Consulta de ejemplo
-
-```sql
-select count(*) from tasks;
-```
-
-![DB Browser - conteo de tareas](/images/db-browser-query.png)
-
-Esta consulta corrida justo después de que el servidor sembrara los datos iniciales (antes de crear ninguna tarea adicional) devuelve `3` — confirmando que la semilla de Stage 0 insertó exactamente las tres tareas esperadas, ni una más.
-
 ---
 
 ## 💻 Ejemplo de uso (curl)
