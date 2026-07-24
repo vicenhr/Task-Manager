@@ -4,6 +4,7 @@
 ![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)
 ![JSON](https://img.shields.io/badge/JSON-000000?style=for-the-badge&logo=json&logoColor=white)
 ![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
+![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)
 ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
 
 API REST para la gestión de una lista de tareas (to-do list), desarrollada con Node.js y Express como parte del programa **FlyRank Internship — Backend Track**.
@@ -15,7 +16,8 @@ API REST para la gestión de una lista de tareas (to-do list), desarrollada con 
 - **Node.js** — entorno de ejecución
 - **Express** — framework para el servidor y las rutas
 - **Swagger UI** — documentación interactiva de la API
-- Almacenamiento **en memoria** (sin base de datos — los datos se reinician al reiniciar el servidor)
+- **SQLite** (`better-sqlite3`) — almacenamiento persistente en un único archivo (`tasks.db`)
+
 
 ---
 
@@ -67,6 +69,41 @@ Con el servidor corriendo, visita:
 
 ---
 
+## 🗄️ Base de datos (SQLite)
+
+### ¿Por qué SQLite?
+
+Lo elegí porque encaja bien con el tamaño y propósito de este proyecto. Como su nombre indica, es una base de datos ligera: no requiere levantar un servidor de base de datos aparte ni configurar una conexión — toda la base vive y se administra dentro de un único archivo, en el mismo lugar donde corre la aplicación. Para un CRUD como este, es "cero configuración" sin sacrificar SQL real.
+
+### ¿Dónde vive?
+
+La base de datos vive en un archivo independiente, `tasks.db`, ubicado en la raíz del proyecto. Se crea automáticamente la primera vez que arranca el servidor — no requiere ningún paso manual. Este archivo está en `.gitignore`, así que no se sube al repositorio: cada clon del proyecto genera su propio `tasks.db` limpio, con las tres tareas de ejemplo sembradas.
+
+Se puede inspeccionar directamente, sin pasar por la API, abriéndolo con [DB Browser for SQLite](https://sqlitebrowser.org/) o corriendo comandos SQL tradicionales contra él.
+
+### Consulta de ejemplo
+
+```sql
+select count(*) from tasks;
+```
+
+![DB Browser - conteo de tareas](/images/db-browser-query.png)
+
+Esta consulta corrida justo después de que el servidor sembrara los datos iniciales (antes de crear ninguna tarea adicional) devuelve `3` — confirmando que la semilla de Stage 0 insertó exactamente las tres tareas esperadas, ni una más.
+
+
+### Consulta de ejemplo
+
+```sql
+select count(*) from tasks;
+```
+
+![DB Browser - conteo de tareas](/images/db-browser-query.png)
+
+Esta consulta corrida justo después de que el servidor sembrara los datos iniciales (antes de crear ninguna tarea adicional) devuelve `3` — confirmando que la semilla de Stage 0 insertó exactamente las tres tareas esperadas, ni una más.
+
+---
+
 ## 💻 Ejemplo de uso (curl)
 
 ```bash
@@ -95,6 +132,8 @@ Keep-Alive: timeout=5
 "create a few tasks, restart your server, GET /tasks . Write two sentences in your README about what happened and why. This observation is the entire reason Week 3 exists"
 
 The data was reset due to the fact that the array is on memory, it disappears when the server is restarted. This is the reason why we need to use a database to store data persistently.
+
+NOTA: Esto ya no ocurre desde la migración a SQLite.
 
 ---
 
