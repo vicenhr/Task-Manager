@@ -1,3 +1,6 @@
+require('dotenv').config();
+console.log("DEBUG:", JSON.stringify(process.env.DATABASE_URL));
+
 const express = require('express');
 const app = express();
 const port = 3000;
@@ -5,30 +8,41 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./openapi.json');
 const Database = require('better-sqlite3');
 const db = new Database('tasks.db');
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
+});
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS tasks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    done BOOLEAN NOT NULL DEFAULT 0
-  );
-`);
+async function initDb() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tasks (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      done BOOLEAN NOT NULL DEFAULT false
+    );
+  `);
 
-console.log("Database initialized");
+  console.log("Database initialized");
 
-const row = db.prepare('SELECT COUNT(*) as total FROM tasks').get()
-if (row.total === 0) {
-  // Prepare an INSERT statement
-  const insert = db.prepare('INSERT INTO tasks (title) VALUES (?)');
-
-  // Insert user data
-  insert.run('Comprar leche');
-  insert.run('Lavar ropa');
-  insert.run('Cocinar lasaña');
-
+  const result = await pool.query('SELECT COUNT(*) AS total FROM tasks');
+  if (Number(result.rows[0].total) === 0) {
+    await pool.query('INSERT INTO tasks (title) VALUES ($1)', ['Comprar leche']);
+    await pool.query('INSERT INTO tasks (title) VALUES ($1)', ['Lavar ropa']);
+    await pool.query('INSERT INTO tasks (title) VALUES ($1)', ['Cocinar lasaña']);
+  }
 }
+
+async function main() {
+  await initDb();
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+}
+
+main();
 
 // Middleware para poder leer JSON en el body de las requests (lo necesitarás en Stage 3)
 app.use(express.json());
@@ -70,7 +84,7 @@ app.get('/health', (req, res) => {
 
 // Endpoint para obtener todas las tareas
 app.get('/tasks', (req, res) => {
-  if(req.query.done == "true"){
+  if (req.query.done == "true") {
     const doneTasks = db.prepare('SELECT * FROM tasks WHERE done = 1').all();
     return res.json(doneTasks);
   }
@@ -87,10 +101,10 @@ app.get('/tasks/:id', (req, res) => {
 
 // Endpoint para crear una nueva tarea
 app.post('/tasks', (req, res) => {
-  if(req.body.title==null || req.body.title.trim() === "") {
+  if (req.body.title == null || req.body.title.trim() === "") {
     return res.status(400).json({ error: "Title is required" });
   }
-  
+
   const newTask = db.prepare('INSERT INTO tasks (title) VALUES (?) ').run(req.body.title);
   const taskDB = db.prepare('SELECT * FROM tasks WHERE id = ?').get(newTask.lastInsertRowid);
   res.status(201).json(taskDB);
@@ -121,12 +135,4 @@ app.delete('/tasks/:id', (req, res) => {
   const taskDelete = db.prepare('DELETE FROM tasks WHERE id = ?').run(req.task.id);
   console.log(taskDelete);
   res.status(204).end();
-});
-
-//== Extras ==
-
-
-
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
 });
