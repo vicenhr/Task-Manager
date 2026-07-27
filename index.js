@@ -104,39 +104,51 @@ app.get('/tasks/:id', async (req, res) => {
 //== 3 ==
 
 // Endpoint para crear una nueva tarea
-app.post('/tasks', (req, res) => {
+app.post('/tasks', async (req, res) => {
   if (req.body.title == null || req.body.title.trim() === "") {
     return res.status(400).json({ error: "Title is required" });
   }
 
-  const newTask = db.prepare('INSERT INTO tasks (title) VALUES (?) ').run(req.body.title);
-  const taskDB = db.prepare('SELECT * FROM tasks WHERE id = ?').get(newTask.lastInsertRowid);
-  res.status(201).json(taskDB);
+  try {
+    const newTask = await pool.query('INSERT INTO tasks (title) VALUES ($1) RETURNING *', [req.body.title]);
+    res.status(201).json(newTask.rows[0]);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 
 //== 4 ==
 // Endpoint para actualizar una tarea existente
-app.put('/tasks/:id', (req, res) => {
+app.put('/tasks/:id', async (req, res) => {
   if ((req.body.title == null || req.body.title.trim() === "") && req.body.done == null) {
     return res.status(400).json({ error: "Invalid body" });
   }
 
-  if (req.body.title != null && req.body.title.trim() !== "") {
-    const change = db.prepare('UPDATE tasks SET title = ? where id = ? ').run(req.body.title, req.taskId);
-  }
-  if (req.body.done != null) {
-    const change = db.prepare('UPDATE tasks SET done = ? where id = ? ').run(Number(req.body.done), req.taskId);
-  }
+  try {
+    if (req.body.title != null && req.body.title.trim() !== "") {
+      const change = await pool.query('UPDATE tasks SET title = $1 where id = $2', [req.body.title, req.taskId]);
+    }
+    if (req.body.done != null) {
+      const change = await pool.query('UPDATE tasks SET done = $1 where id = $2', [Boolean(req.body.done), req.taskId]);
+    }
 
-  const taskUpdated = db.prepare('SELECT * FROM tasks WHERE id = ?').get(req.taskId);
-
-  res.json(taskUpdated);
+    const taskUpdated = await pool.query('SELECT * FROM tasks where id = $1', [req.taskId]);
+    res.json(taskUpdated.rows[0]);
+  }catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 // Endpoint para eliminar una tarea existente
-app.delete('/tasks/:id', (req, res) => {
-  const taskDelete = db.prepare('DELETE FROM tasks WHERE id = ?').run(req.task.id);
-  console.log(taskDelete);
-  res.status(204).end();
+app.delete('/tasks/:id', async(req, res) => {
+  try{
+    const taskDelete = await pool.query('DELETE FROM tasks WHERE id = $1', [req.taskId]);
+    res.status(204).end();
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 });
