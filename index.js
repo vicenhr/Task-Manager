@@ -47,21 +47,25 @@ main();
 // Middleware para poder leer JSON en el body de las requests (lo necesitarás en Stage 3)
 app.use(express.json());
 
-app.param('id', (req, res, next, id) => {
+app.param('id', async (req, res, next, id) => {
   const taskId = Number(id);
   if (isNaN(taskId)) {
     return res.status(400).json({ error: "Invalid ID" });
   }
 
-  const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(taskId);
-  if (!task) {
-    return res.status(404).json({ error: `Task ${id} not found` });
+  try {
+    const task = await pool.query('SELECT * FROM tasks WHERE id = $1', [taskId]);
+    if (!task.rows[0]) {
+      return res.status(404).json({ error: `Task ${id} not found` });
+    }
+
+    req.task = task.rows[0];
+    req.taskId = taskId;
+    next();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
-
-  req.task = task;
-  req.taskId = taskId;
-
-  next();
 });
 
 //== 1 ==
@@ -83,17 +87,17 @@ app.get('/health', (req, res) => {
 //== 2 ==
 
 // Endpoint para obtener todas las tareas
-app.get('/tasks', (req, res) => {
+app.get('/tasks', async (req, res) => {
   if (req.query.done == "true") {
-    const doneTasks = db.prepare('SELECT * FROM tasks WHERE done = 1').all();
-    return res.json(doneTasks);
+    const doneTasks = await pool.query('SELECT * FROM tasks WHERE done = true');
+    return res.json(doneTasks.rows);
   }
-  const tasks = db.prepare('SELECT * FROM tasks').all();
-  res.json(tasks);
+  const result = await pool.query('SELECT * FROM tasks');
+  res.json(result.rows);
 });
 
 // Endpoint para obtener una tarea por su ID
-app.get('/tasks/:id', (req, res) => {
+app.get('/tasks/:id', async (req, res) => {
   res.json(req.task); // usa lo que dejó el app.param
 });
 
