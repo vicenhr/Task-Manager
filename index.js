@@ -1,13 +1,10 @@
 require('dotenv').config();
-console.log("DEBUG:", JSON.stringify(process.env.DATABASE_URL));
 
 const express = require('express');
 const app = express();
 const port = 3000;
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./openapi.json');
-const Database = require('better-sqlite3');
-const db = new Database('tasks.db');
 const { Pool } = require('pg');
 
 const pool = new Pool({
