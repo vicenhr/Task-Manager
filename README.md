@@ -94,9 +94,9 @@ La base de datos se ejecuta en un contenedor Docker separado, definido en el arc
 
 Con el stack corriendo (`docker compose up`), puedes abrir una consola SQL directamente dentro del contenedor de la base de datos:
 
-\`\`\`bash
+```bash
 docker exec -it crud-api-db-1 psql -U postgres -d tasks -c "SELECT * FROM tasks;"
-\`\`\`
+```
 
 ![Consulta en Postgres](/images/postgres-query.png)
 
