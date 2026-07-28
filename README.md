@@ -4,7 +4,8 @@
 ![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)
 ![JSON](https://img.shields.io/badge/JSON-000000?style=for-the-badge&logo=json&logoColor=white)
 ![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
-![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)
+![Postgres](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
 
 API REST para la gestión de una lista de tareas (to-do list), desarrollada con Node.js y Express como parte del programa **FlyRank Internship — Backend Track**.
@@ -16,8 +17,7 @@ API REST para la gestión de una lista de tareas (to-do list), desarrollada con 
 - **Node.js** — entorno de ejecución
 - **Express** — framework para el servidor y las rutas
 - **Swagger UI** — documentación interactiva de la API
-- **SQLite** (`better-sqlite3`) — almacenamiento persistente en un único archivo (`tasks.db`)
-
+- **PostgreSQL** — base de datos relacional
 
 ---
 
@@ -26,16 +26,26 @@ API REST para la gestión de una lista de tareas (to-do list), desarrollada con 
 ```bash
 # 1. Clonar el repositorio
 git clone https://github.com/vicenhr/crud-api
+
+# 2. Acceder al directorio del proyecto
 cd crud-api
 
-# 2. Instalar dependencias
-npm install
+# 3. Copiar el archivo de ejemplo de variables de entorno
+cp .env.example .env
 
-# 3. Levantar el servidor
-node index.js
+# 4. Ejecutar la aplicación con Docker Compose
+docker compose up
 ```
 
 El servidor corre en: `http://localhost:3000`
+
+---
+
+## ⚙️ Variables de entorno
+
+Copia `.env.example` a `.env` antes de levantar el proyecto. La variable `DATABASE_URL` contiene la cadena de conexión a la base de datos.
+
+⚠️ `.env` está en `.gitignore` y nunca se sube al repositorio — solo `.env.example` (con valores de ejemplo) queda público.
 
 ---
 
@@ -50,6 +60,7 @@ El servidor corre en: `http://localhost:3000`
 | GET | `/tasks/:id` | Obtener una tarea específica |
 | PUT | `/tasks/:id` | Actualizar una tarea existente |
 | DELETE | `/tasks/:id` | Eliminar una tarea existente |
+| GET | `/tasks?done=true` | Obtener solo las tareas completadas |
 
 ---
 
@@ -69,27 +80,25 @@ Con el servidor corriendo, visita:
 
 ---
 
-## 🗄️ Base de datos (SQLite)
+## 🗄️ Base de datos (PostgreSQL)
 
-### ¿Por qué SQLite?
+### ¿Por qué PostgreSQL?
 
-Lo elegí porque encaja bien con el tamaño y propósito de este proyecto. Como su nombre indica, es una base de datos ligera: no requiere levantar un servidor de base de datos aparte ni configurar una conexión — toda la base vive y se administra dentro de un único archivo, en el mismo lugar donde corre la aplicación. Para un CRUD como este, es "cero configuración" sin sacrificar SQL real.
+Lo elegí porque encaja bien con el tamaño y propósito de este proyecto. Como su nombre indica, es una base de datos robusta y escalable: ofrece un amplio conjunto de características y es ampliamente utilizado en entornos de producción. Para un CRUD como este, es "cero configuración" sin sacrificar SQL real.
 
 ### ¿Dónde vive?
 
-La base de datos vive en un archivo independiente, `tasks.db`, ubicado en la raíz del proyecto. Se crea automáticamente la primera vez que arranca el servidor — no requiere ningún paso manual. Este archivo está en `.gitignore`, así que no se sube al repositorio: cada clon del proyecto genera su propio `tasks.db` limpio, con las tres tareas de ejemplo sembradas.
+La base de datos se ejecuta en un contenedor Docker separado, definido en el archivo `docker-compose.yml`. Esto permite que la API y la base de datos se comuniquen entre sí sin necesidad de instalar PostgreSQL directamente en tu máquina.
 
-Se puede inspeccionar directamente, sin pasar por la API, abriéndolo con [DB Browser for SQLite](https://sqlitebrowser.org/) o corriendo comandos SQL tradicionales contra él.
+### ¿Cómo inspeccionarla?
 
-### Consulta de ejemplo
+Con el stack corriendo (`docker compose up`), puedes abrir una consola SQL directamente dentro del contenedor de la base de datos:
 
-```sql
-select count(*) from tasks;
-```
+\`\`\`bash
+docker exec -it crud-api-db-1 psql -U postgres -d tasks -c "SELECT * FROM tasks;"
+\`\`\`
 
-![DB Browser - conteo de tareas](/images/db-browser-query.png)
-
-Esta consulta corrida justo después de que el servidor sembrara los datos iniciales (antes de crear ninguna tarea adicional) devuelve `3` — confirmando que la semilla de Stage 0 insertó exactamente las tres tareas esperadas, ni una más.
+![Consulta en Postgres](/images/postgres-query.png)
 
 ---
 
@@ -113,16 +122,6 @@ Keep-Alive: timeout=5
 
 {"id":4,"title":"Comprar leche","done":false}
 ```
-
----
-
-## 🧪 The mortality experiment
-
-"create a few tasks, restart your server, GET /tasks . Write two sentences in your README about what happened and why. This observation is the entire reason Week 3 exists"
-
-The data was reset due to the fact that the array is on memory, it disappears when the server is restarted. This is the reason why we need to use a database to store data persistently.
-
-NOTA: Esto ya no ocurre desde la migración a SQLite.
 
 ---
 
