@@ -1,11 +1,23 @@
 require('dotenv').config();
 
 const express = require('express');
+process.on('uncaughtException', (err) => {
+  console.error('🚨 Error fatal no atrapado:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('🚨 Promesa rechazada en el fondo:', reason);
+});
 const app = express();
 const port = 3000;
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./openapi.json');
 const { Pool } = require('pg');
+const { createClient } = require('@supabase/supabase-js');
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey); // Crear la conexión
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL
