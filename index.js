@@ -205,3 +205,31 @@ app.post('/auth/login', async (req, res) => {
     "refresh_token": data.session.refresh_token
   });
 });
+
+// Endpoint publico inforrmativo
+app.get('/public/info', async (req, res) => {
+  return res.json({ "message": "Welcome stranger! This info is public." });
+});
+
+//Endpoint para verificar el token de acceso
+app.get('/protected/profile', async (req, res) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: "Access token required" });
+  }
+
+  const token = authHeader.slice(7).trim();
+
+  if (token === "") {
+    return res.status(401).json({ error: "Access token required" });
+  }
+
+  const { data: { user } } = await supabase.auth.getUser(token)
+
+  if(user == null){
+    return res.status(401).json({ error: "Invalid or expired token" });
+  }
+
+  return res.status(200).json({ message: "Valid token" });
+});
