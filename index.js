@@ -145,19 +145,63 @@ app.put('/tasks/:id', async (req, res) => {
 
     const taskUpdated = await pool.query('SELECT * FROM tasks where id = $1', [req.taskId]);
     res.json(taskUpdated.rows[0]);
-  }catch (err) {
+  } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
 // Endpoint para eliminar una tarea existente
-app.delete('/tasks/:id', async(req, res) => {
-  try{
+app.delete('/tasks/:id', async (req, res) => {
+  try {
     const taskDelete = await pool.query('DELETE FROM tasks WHERE id = $1', [req.taskId]);
     res.status(204).end();
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Internal Server Error" });
   }
+});
+
+//Endpoint para registrarse
+app.post('/auth/signup', async (req, res) => {
+  if (req.body.email == null || req.body.email.trim() === "") {
+    return res.status(400).json({ error: "Invalid body" });
+  }
+  if (req.body.password == null || req.body.password.trim() === "") {
+    return res.status(400).json({ error: "Invalid body" });
+  }
+  const { data, error } = await supabase.auth.signUp({
+    email: req.body.email,
+    password: req.body.password,
+  })
+
+  if (error) {
+    return res.status(400).json({ error: error.message });
+  }
+
+  return res.status(201).json(data.user);
+});
+
+//Endpoint para loggearse
+app.post('/auth/login', async (req, res) => {
+  if (req.body.email == null || req.body.email.trim() === "") {
+    return res.status(400).json({ error: "Invalid body" });
+  }
+  if (req.body.password == null || req.body.password.trim() === "") {
+    return res.status(400).json({ error: "Invalid body" });
+  }
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: req.body.email,
+    password: req.body.password,
+  })
+
+  if (error) {
+    return res.status(401).json({ error: "Invalid login credentials" });
+  }
+
+  return res.status(200).json({
+    "access_token": data.session.access_token,
+    "refresh_token": data.session.refresh_token
+  });
 });
