@@ -4,7 +4,143 @@
         "title": "Task API",
         "version": "1.0.0"
     },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    },
     "paths": {
+        "/auth/signup": {
+            "post": {
+                "summary": "create a new user account",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request (missing fields)"
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "summary": "authenticate and return a JWT",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK (returns access token)"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Invalid login credentials"
+                    }
+                }
+            }
+        },
+        "/protected/dashboard": {
+            "get": {
+                "summary": "Read private dashboard data",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK welcome message"
+                    },
+                    "401": {
+                        "description": "Access token required / Invalid or expired token"
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "summary": "end the user's session",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/public/info": {
+            "get": {
+                "summary": "Read public, open data",
+                "responses": {
+                    "200": {
+                        "description": "Welcome stranger! This info is public."
+                    }
+                }
+            }
+        },
+        "/protected/profile": {
+            "get": {
+                "summary": "Read private profile data",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK (returns user metadata)"
+                    },
+                    "401": {
+                        "description": "Access token required / Invalid or expired token"
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "summary": "health check",

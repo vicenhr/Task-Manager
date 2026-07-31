@@ -182,6 +182,33 @@ app.post('/auth/signup', async (req, res) => {
   return res.status(201).json(data.user);
 });
 
+// Middleware para la autenticación
+async function authMiddleware(req, res, next) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: "Access token required" });
+  }
+
+  const token = authHeader.slice(7).trim();
+
+  if (token === "") {
+    return res.status(401).json({ error: "Access token required" });
+  }
+
+  const { data: { user } } = await supabase.auth.getUser(token)
+
+  if (!user) {
+    return res.status(401).json({ error: "Invalid or expired token" });
+  }
+
+  req.user = user;
+  req.token = token;
+
+  next();
+}
+
+
 //Endpoint para loggearse
 app.post('/auth/login', async (req, res) => {
   if (req.body.email == null || req.body.email.trim() === "") {
@@ -212,24 +239,28 @@ app.get('/public/info', async (req, res) => {
 });
 
 //Endpoint para verificar el token de acceso
-app.get('/protected/profile', async (req, res) => {
-  const authHeader = req.headers.authorization;
+app.get('/protected/profile', authMiddleware, async (req, res) => {
+  return res.status(200).json({
+    id: req.user.id,
+    email: req.user.email,
+    created_at: req.user.created_at,
+  });
+});
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: "Access token required" });
+app.get('/protected/dashboard', authMiddleware, async (req, res) => {
+  return res.status(200).json({ message: `Bienvenido, ${req.user.email}` });
+});
+
+// Endpoint cerrar sesión
+app.post('/auth/logout', authMiddleware, async (req, res) => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+    return res.status(204).end();
+  } catch (err) {
+    return res.status(500).json({ error: "Internal server error" });
   }
 
-  const token = authHeader.slice(7).trim();
-
-  if (token === "") {
-    return res.status(401).json({ error: "Access token required" });
-  }
-
-  const { data: { user } } = await supabase.auth.getUser(token)
-
-  if(user == null){
-    return res.status(401).json({ error: "Invalid or expired token" });
-  }
-
-  return res.status(200).json({ message: "Valid token" });
 });
