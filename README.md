@@ -47,6 +47,10 @@ Copia `.env.example` a `.env` antes de levantar el proyecto. La variable `DATABA
 
 ⚠️ `.env` está en `.gitignore` y nunca se sube al repositorio — solo `.env.example` (con valores de ejemplo) queda público.
 
+Además de `DATABASE_URL`, necesitas crear un proyecto gratis en [Supabase](https://supabase.com) y copiar tu `SUPABASE_URL` y `SUPABASE_KEY` (la clave `anon`, nunca la `service_role`) en tu `.env`.
+
+⚠️ En el dashboard de Supabase, en **Authentication → Providers → Email**, desactiva "Confirm email" para poder loguearte inmediatamente después de registrarte.
+
 ---
 
 ## 📌 Endpoints
@@ -63,6 +67,28 @@ Copia `.env.example` a `.env` antes de levantar el proyecto. La variable `DATABA
 | GET | `/tasks?done=true` | Obtener solo las tareas completadas |
 
 ---
+## 🔐 Autenticación
+
+La API usa **Supabase Auth** como Identity Provider: gestiona cuentas, contraseñas y JWTs, sin que el backend maneje criptografía directamente.
+
+| Método | Ruta | Descripción | ¿Requiere token? |
+|--------|------|-------------|-------------------|
+| POST | `/auth/signup` | Crear una cuenta nueva | No |
+| POST | `/auth/login` | Autenticarse y obtener un JWT | No |
+| POST | `/auth/logout` | Cerrar sesión | Sí (Bearer) |
+| GET | `/public/info` | Datos públicos, sin restricción | No |
+| GET | `/protected/profile` | Perfil del usuario autenticado | Sí (Bearer) |
+| GET | `/protected/dashboard` | Ruta protegida de ejemplo (reutiliza el mismo middleware) | Sí (Bearer) |
+
+### Ejemplo de uso
+
+\`\`\`bash
+curl -i -X POST http://localhost:3000/auth/signup \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"test@ejemplo.com\",\"password\":\"password123\"}"
+\`\`\`
+
+---
 
 ## 📖 Documentación interactiva (Swagger)
 
@@ -71,6 +97,12 @@ Con el servidor corriendo, visita:
 **http://localhost:3000/docs**
 
 ![Swagger UI](/images/swagger-ui.png)
+
+### Swagger con Bearer Auth
+
+![Swagger - candado en rutas protegidas](/images/swagger-protected.png)
+
+---
 
 ### Prueba del endpoint POST /tasks
 

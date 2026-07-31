@@ -77,24 +77,6 @@
                 }
             }
         },
-        "/protected/dashboard": {
-            "get": {
-                "summary": "Read private dashboard data",
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK welcome message"
-                    },
-                    "401": {
-                        "description": "Access token required / Invalid or expired token"
-                    }
-                }
-            }
-        },
         "/auth/logout": {
             "post": {
                 "summary": "end the user's session",
@@ -113,9 +95,27 @@
                 }
             }
         },
+        "/protected/dashboard": {
+            "get": {
+                "summary": "read private dashboard data",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK welcome message"
+                    },
+                    "401": {
+                        "description": "Access token required / Invalid or expired token"
+                    }
+                }
+            }
+        },
         "/public/info": {
             "get": {
-                "summary": "Read public, open data",
+                "summary": "read public, open data",
                 "responses": {
                     "200": {
                         "description": "Welcome stranger! This info is public."
@@ -125,7 +125,7 @@
         },
         "/protected/profile": {
             "get": {
-                "summary": "Read private profile data",
+                "summary": "read private profile data",
                 "security": [
                     {
                         "bearerAuth": []
